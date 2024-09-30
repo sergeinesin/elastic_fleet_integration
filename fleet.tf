@@ -3,20 +3,13 @@ resource "elasticstack_fleet_agent_policy" "agent_policy" {
   namespace       = "default"
 }
 
-# resource elasticstack_fleet_integration needs integration version input and does not allow "latest" as a version, 
-# so to work around this, we query the Elastic Package Registry API to get the latest version of the Azure integration
-# and then use that version in the resource elasticstack_fleet_integration_policy
-
-data "http" "plugin_version" {
-    url = "https://epr.elastic.co/search?package=azure"
-    request_headers = {
-    Accept = "application/json"
-  }
+data "elasticstack_fleet_integration" "azure" {
+  name = "azure"
 }
 
 resource "elasticstack_fleet_integration" "azure_logs_integration" {
   name    = "azure"
-  version = jsondecode(data.http.plugin_version.response_body)[0]["version"]
+  version = data.elasticstack_fleet_integration.azure.version
 }
 
 resource "elasticstack_fleet_integration_policy" "azure_logs" {
